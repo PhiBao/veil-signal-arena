@@ -9,11 +9,14 @@ import {
   buildSeedLeaderboards,
   createSeedActivity,
   formatPublicHandle,
+  getReputationRank,
   scoreCommitment,
   type ActivityItem,
   type Arena,
+  type ArenaFeeInfo,
   type CommitmentRecord,
   type LeaderboardEntry,
+  type ReputationRecord,
   type RouteMode,
   type VeilBootstrap,
 } from '../../shared/veil.ts'
@@ -49,6 +52,19 @@ type RawOnchainCommitment = {
   revealed?: unknown
   thesis?: unknown
   evidence?: unknown
+  salt?: unknown
+}
+
+type RawOnchainReputation = {
+  owner?: unknown
+  score?: unknown
+  reveals?: unknown
+}
+
+type RawOnchainFeeConfig = {
+  arena_id?: unknown
+  amount?: unknown
+  denom?: unknown
 }
 
 export const VEIL_MOVE_EXECUTE_JSON_TYPE_URL = '/initia.move.v1.MsgExecuteJSON'
@@ -63,6 +79,8 @@ function getEmptyBootstrap(): VeilBootstrap {
     activity: createSeedActivity(),
     leaderboards: buildSeedLeaderboards(arenas),
     userCommitments: [],
+    reputations: [],
+    arenaFees: {},
     stats: {
       totalCommitted: 0,
       totalRevealed: 0,
@@ -203,6 +221,25 @@ function toIsoTimestamp(secondsValue: unknown) {
   return new Date(seconds * 1000).toISOString()
 }
 
+function normalizeReputation(raw: RawOnchainReputation): ReputationRecord {
+  const owner = normalizeInitiaAddress(coerceString(raw.owner))
+  const score = coerceNumber(raw.score)
+  return {
+    initiaAddress: owner,
+    score,
+    reveals: coerceNumber(raw.reveals),
+    rank: getReputationRank(score),
+  }
+}
+
+function normalizeFeeConfig(raw: RawOnchainFeeConfig): ArenaFeeInfo {
+  return {
+    arenaId: coerceString(raw.arena_id),
+    amount: coerceNumber(raw.amount),
+    denom: coerceString(raw.denom),
+  }
+}
+
 function normalizeCommitment(
   raw: RawOnchainCommitment,
   viewerInitiaAddress?: string,
@@ -212,8 +249,8 @@ function normalizeCommitment(
   const routeMode = normalizeRouteMode(raw.route_mode)
   const revealed = coerceBoolean(raw.revealed)
   const revealedAt = unwrapOption(raw.revealed_at_secs)
-  const thesis = coerceString(raw.thesis, '').trim() || undefined
-  const evidence = coerceString(raw.evidence, '').trim() || undefined
+  const thesis = coerceString(raw.thesis)
+  const evidence = coerceString(raw.evidence)
   const commitmentHash = coerceString(raw.commitment_hash)
   const confidence = coerceNumber(raw.confidence)
   const score = revealed ? scoreCommitment(commitmentHash, confidence, routeMode) : undefined
@@ -278,7 +315,7 @@ function buildLeaderboards(commitments: CommitmentRecord[]) {
           badge: ROUTE_LABELS[commitment.routeMode],
           score,
           delta: buildLeaderboardDelta(score),
-          note: commitment.thesis!,
+          note: commitment.thesis || '',
         }
       })
       .sort((left, right) => right.score - left.score)
@@ -367,6 +404,27 @@ export async function fetchVeilBootstrap(
       functionName: 'list_commitments',
     })
 
+    let rawReputations: RawOnchainReputation[] = []
+    let rawFeeConfigs: RawOnchainFeeConfig[] = []
+
+    try {
+      ;[rawReputations, rawFeeConfigs] = await Promise.all([
+        moveClient.viewFunction<RawOnchainReputation[]>({
+          moduleAddress: VEIL_MODULE_ADDRESS,
+          moduleName: VEIL_MODULE_NAME,
+          functionName: 'list_reputations',
+        }),
+        moveClient.viewFunction<RawOnchainFeeConfig[]>({
+          moduleAddress: VEIL_MODULE_ADDRESS,
+          moduleName: VEIL_MODULE_NAME,
+          functionName: 'list_arena_fee_configs',
+        }),
+      ])
+    } catch {
+      rawReputations = []
+      rawFeeConfigs = []
+    }
+
     const commitments = rawCommitments
       .map((commitment) =>
         normalizeCommitment(commitment, viewerInitiaAddress, viewerUsername),
@@ -376,6 +434,17 @@ export async function fetchVeilBootstrap(
         (left, right) =>
           new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
       )
+
+    const reputations = rawReputations
+      .map(normalizeReputation)
+      .sort((left, right) => right.score - left.score)
+
+    const arenaFees = rawFeeConfigs
+      .map(normalizeFeeConfig)
+      .reduce<Record<string, ArenaFeeInfo>>((acc, fee) => {
+        acc[fee.arenaId] = fee
+        return acc
+      }, {})
 
     return {
       arenas: buildArenaRuntime(commitments),
@@ -387,6 +456,8 @@ export async function fetchVeilBootstrap(
             sameInitiaAddress(commitment.initiaAddress, viewerInitiaAddress),
           )
         : [],
+      reputations,
+      arenaFees,
       stats: buildStats(commitments),
       runtime: {
         moduleReady: true,
@@ -399,8 +470,6 @@ export async function fetchVeilBootstrap(
     }
   } catch (error) {
     console.error('fetchVeilBootstrap failed:', error)
-    // If we have a configured module address, be optimistic and assume it's ready.
-    // The on-chain transaction will fail naturally if the module is truly missing.
     return {
       ...fallback,
       runtime: {
@@ -419,6 +488,9 @@ export function buildCommitMessage(
     routeMode: RouteMode
     commitmentHash: string
     confidence: number
+    thesis: string
+    evidence: string
+    salt: string
   },
 ) {
   return {
@@ -434,6 +506,9 @@ export function buildCommitMessage(
         JSON.stringify(payload.routeMode),
         JSON.stringify(payload.commitmentHash),
         JSON.stringify(String(payload.confidence)),
+        JSON.stringify(payload.thesis),
+        JSON.stringify(payload.evidence),
+        JSON.stringify(payload.salt),
       ],
     }),
   }
@@ -443,8 +518,6 @@ export function buildRevealMessage(
   sender: string,
   payload: {
     commitmentId: string
-    thesis: string
-    evidence: string
   },
 ) {
   return {
@@ -457,8 +530,77 @@ export function buildRevealMessage(
       typeArgs: [],
       args: [
         JSON.stringify(payload.commitmentId.replace(/^onchain-/, '')),
-        JSON.stringify(payload.thesis),
-        JSON.stringify(payload.evidence),
+      ],
+    }),
+  }
+}
+
+export function buildSetArenaFeeMessage(
+  sender: string,
+  payload: {
+    arenaId: string
+    amount: number
+    denom: string
+  },
+) {
+  return {
+    typeUrl: VEIL_MOVE_EXECUTE_JSON_TYPE_URL,
+    value: MsgExecuteJSON.fromPartial({
+      sender,
+      moduleAddress: VEIL_MODULE_ADDRESS,
+      moduleName: VEIL_MODULE_NAME,
+      functionName: 'set_arena_fee',
+      typeArgs: [],
+      args: [
+        JSON.stringify(payload.arenaId),
+        JSON.stringify(String(payload.amount)),
+        JSON.stringify(payload.denom),
+      ],
+    }),
+  }
+}
+
+export function buildUpdateArenaFeeMessage(
+  sender: string,
+  payload: {
+    arenaId: string
+    amount: number
+    denom: string
+  },
+) {
+  return {
+    typeUrl: VEIL_MOVE_EXECUTE_JSON_TYPE_URL,
+    value: MsgExecuteJSON.fromPartial({
+      sender,
+      moduleAddress: VEIL_MODULE_ADDRESS,
+      moduleName: VEIL_MODULE_NAME,
+      functionName: 'update_arena_fee',
+      typeArgs: [],
+      args: [
+        JSON.stringify(payload.arenaId),
+        JSON.stringify(String(payload.amount)),
+        JSON.stringify(payload.denom),
+      ],
+    }),
+  }
+}
+
+export function buildRemoveArenaFeeMessage(
+  sender: string,
+  payload: {
+    arenaId: string
+  },
+) {
+  return {
+    typeUrl: VEIL_MOVE_EXECUTE_JSON_TYPE_URL,
+    value: MsgExecuteJSON.fromPartial({
+      sender,
+      moduleAddress: VEIL_MODULE_ADDRESS,
+      moduleName: VEIL_MODULE_NAME,
+      functionName: 'remove_arena_fee',
+      typeArgs: [],
+      args: [
+        JSON.stringify(payload.arenaId),
       ],
     }),
   }

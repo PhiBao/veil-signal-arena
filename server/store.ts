@@ -140,6 +140,8 @@ export async function getBootstrap(initiaAddress?: string): Promise<VeilBootstra
     userCommitments: initiaAddress
       ? commitments.filter((commitment) => commitment.initiaAddress === initiaAddress)
       : [],
+    reputations: [],
+    arenaFees: {},
     stats: buildStats(store.commitments),
     runtime: {
       moduleReady: false,

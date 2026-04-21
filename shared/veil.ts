@@ -46,6 +46,21 @@ export type ActivityItem = {
   createdAt: string
 }
 
+export type ReputationRank = 'Unproven' | 'Contender' | 'Signalist' | 'Oracle' | 'Archon'
+
+export type ReputationRecord = {
+  initiaAddress: string
+  score: number
+  reveals: number
+  rank: ReputationRank
+}
+
+export type ArenaFeeInfo = {
+  arenaId: string
+  amount: number
+  denom: string
+}
+
 export type CommitmentStatus = 'committed' | 'revealed'
 
 export type CommitmentRecord = {
@@ -104,6 +119,8 @@ export type VeilBootstrap = {
   activity: ActivityItem[]
   leaderboards: Record<string, LeaderboardEntry[]>
   userCommitments: CommitmentRecord[]
+  reputations: ReputationRecord[]
+  arenaFees: Record<string, ArenaFeeInfo>
   stats: {
     totalCommitted: number
     totalRevealed: number
@@ -353,6 +370,18 @@ export function formatPublicHandle(username: string | null | undefined, fallback
   }
 
   return truncateAddress(fallbackAddress)
+}
+
+export function getReputationRank(score: number): ReputationRank {
+  if (score >= 500) return 'Archon'
+  if (score >= 200) return 'Oracle'
+  if (score >= 100) return 'Signalist'
+  if (score >= 50) return 'Contender'
+  return 'Unproven'
+}
+
+export function formatReputationScore(score: number): string {
+  return `${score} pts`
 }
 
 export function leaderboardEntryFromCommitment(

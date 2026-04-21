@@ -10,6 +10,7 @@ import {
   buildSeedLeaderboards,
   createSeedActivity,
   formatPublicHandle,
+  formatReputationScore,
   serializeCommitmentPayload,
   type CommitmentRecord,
   type RouteMode,
@@ -18,7 +19,6 @@ import {
 import {
   generateSalt,
   hashCommitmentPayload,
-  useCommitmentVault,
 } from './lib/commitmentVault.ts'
 import { formatRelativeTime, formatUsd, truncateMiddle } from './lib/format.ts'
 import {
@@ -30,6 +30,12 @@ import {
   buildRevealMessage,
   fetchVeilBootstrap,
 } from './lib/veilChain.ts'
+
+function sameInitiaAddress(left: string, right: string) {
+  if (left === right) return true
+  const normalize = (s: string) => s.startsWith('init1') ? s : `init1${s}`
+  return normalize(left) === normalize(right)
+}
 
 type DraftState = {
   thesis: string
@@ -68,6 +74,8 @@ function getFallbackBootstrap(): VeilBootstrap {
     activity: createSeedActivity(),
     leaderboards: buildSeedLeaderboards(arenas),
     userCommitments: [],
+    reputations: [],
+    arenaFees: {},
     stats: {
       totalCommitted: 0,
       totalRevealed: 0,
@@ -100,7 +108,6 @@ function App() {
     null,
   )
   const [lastAnchor, setLastAnchor] = useState<AnchorReceipt | null>(null)
-  const [revealedTxs, setRevealedTxs] = useState<Record<string, string>>({})
 
   const thesisInputRef = useRef<HTMLInputElement>(null)
   const evidenceInputRef = useRef<HTMLTextAreaElement>(null)
@@ -120,7 +127,6 @@ function App() {
   } = useInterwovenKit()
   const deferredInitiaAddress = useDeferredValue(initiaAddress || '')
   const portfolio = usePortfolio()
-  const { vault, removeEntry, upsertEntry } = useCommitmentVault()
   const bootstrapQuery = useQuery({
     queryKey: ['bootstrap', deferredInitiaAddress || 'guest', username || 'anon'],
     queryFn: () => fetchVeilBootstrap(deferredInitiaAddress || undefined, username ?? null),
@@ -140,10 +146,7 @@ function App() {
     : 'Disconnected'
   const confidenceDegrees = Math.round(draft.confidence * 3.6)
   const portfolioValue = Number(portfolio.totalValue ?? 0)
-  const revealReadyCount = selectedCommitments.filter(
-    (commitment) => commitment.status === 'committed' && vault[commitment.id],
-  ).length
-  const nativeFeatures = ['move execution', 'interwoven bridge', '.init usernames']
+  const nativeFeatures = ['move execution', 'interwoven bridge', '.init usernames', 'on-chain reputation', 'arena entry fees']
   const chainRuntimeLabel = `${bootstrap.runtime.chainId} / ${bootstrap.runtime.network}`
   const moduleStatusLabel = bootstrap.runtime.moduleReady
     ? `${bootstrap.runtime.moduleName} live`
@@ -154,6 +157,10 @@ function App() {
     (left, right) =>
       new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
   )
+  const userReputation = bootstrap.reputations.find((rep) =>
+    initiaAddress && sameInitiaAddress(rep.initiaAddress, initiaAddress)
+  )
+  const selectedArenaFee = bootstrap.arenaFees[selectedArena.id]
 
   useEffect(() => {
     let cancelled = false
@@ -269,33 +276,12 @@ function App() {
             routeMode,
             commitmentHash,
             confidence: draft.confidence,
+            thesis: draft.thesis.trim(),
+            evidence: draft.evidence.trim(),
+            salt: draftSalt,
           }),
         ],
         chainId: VEIL_CHAIN_ID,
-      })
-
-      const refreshedBootstrap = await fetchVeilBootstrap(initiaAddress, username ?? null)
-      const committedRecord = refreshedBootstrap.userCommitments.find(
-        (commitment) =>
-          commitment.commitmentHash === commitmentHash && commitment.status === 'committed',
-      )
-
-      if (!committedRecord) {
-        throw new Error('Commit landed onchain, but the new commitment record was not yet queryable.')
-      }
-
-      upsertEntry({
-        commitmentId: committedRecord.id,
-        arenaId: selectedArena.id,
-        routeMode,
-        thesis: draft.thesis.trim(),
-        evidence: draft.evidence.trim(),
-        confidence: draft.confidence,
-        salt: draftSalt,
-        initiaAddress,
-        commitmentHash,
-        commitTxHash: commitReceipt.transactionHash,
-        createdAt: new Date().toISOString(),
       })
 
       setLastAnchor({
@@ -305,7 +291,7 @@ function App() {
       })
       setNotice({
         tone: 'success',
-        text: 'Commit executed onchain. The reveal package remains only in this browser vault until you reveal it.',
+        text: 'Commit executed onchain. Thesis and evidence are stored on-chain. Reveal when settlement arrives.',
       })
       resetDraft()
       await refreshBootstrap()
@@ -317,8 +303,6 @@ function App() {
   }
 
   async function handleRevealCommitment(commitment: CommitmentRecord) {
-    const revealPackage = vault[commitment.id]
-
     setActiveAction('reveal')
 
     try {
@@ -330,23 +314,15 @@ function App() {
         throw new Error('Connect the original wallet before revealing a sealed signal.')
       }
 
-      if (!revealPackage) {
-        throw new Error('Reveal package missing from this browser. Veil only stored the plaintext locally.')
-      }
-
       const revealReceipt = await requestTxBlock({
         messages: [
           buildRevealMessage(initiaAddress, {
             commitmentId: commitment.id,
-            thesis: revealPackage.thesis,
-            evidence: revealPackage.evidence,
           }),
         ],
         chainId: VEIL_CHAIN_ID,
       })
 
-      setRevealedTxs((prev) => ({ ...prev, [commitment.id]: revealReceipt.transactionHash }))
-      removeEntry(commitment.id)
       setLastAnchor({
         kind: 'reveal',
         txHash: revealReceipt.transactionHash,
@@ -417,9 +393,8 @@ function App() {
             <h2 className="hero-headline">Private commitments. Public proof. Portable `.init` reputation.</h2>
             <p className="hero-text">
               Veil lets humans and AI agents commit hidden theses, reveal only after
-              settlement, and build portable reputation under `.init` identities. Runtime
-              state now comes from Veil Move views, and commits plus reveals execute as real
-              on-chain module calls instead of local API writes.
+              settlement, and build portable reputation under `.init` identities. All data
+              lives on-chain - access your predictions from any device.
             </p>
 
             <div className="hero-status-band">
@@ -469,8 +444,8 @@ function App() {
                 <strong>{bootstrap.stats.totalRevealed}</strong>
               </article>
               <article>
-                <span>Your reveal vault</span>
-                <strong>{Object.keys(vault).length}</strong>
+                <span>Your reputation</span>
+                <strong>{userReputation ? `${userReputation.score} pts (${userReputation.rank})` : isConnected ? 'No reveals yet' : 'Connect'}</strong>
               </article>
               <article>
                 <span>Wallet value</span>
@@ -491,9 +466,8 @@ function App() {
               <p className="signal-overline">On-chain control room</p>
               <h3>Bridge in, execute the commit, auto-sign the loop, reveal on settlement.</h3>
               <p>
-                Veil is wired to direct Move execution and live module reads. The only data that
-                stays local is unrevealed plaintext, because that is the secrecy boundary of the
-                commit-reveal flow.
+                Veil is wired to direct Move execution and live module reads. All commitment
+                data is stored on-chain - accessible from any device with your wallet.
               </p>
             </div>
 
@@ -517,6 +491,12 @@ function App() {
               <div>
                 <p className="signal-label">Module</p>
                 <strong className="signal-value">{moduleStatusLabel}</strong>
+              </div>
+              <div>
+                <p className="signal-label">Reputation</p>
+                <strong className={`signal-value ${userReputation ? 'live-copy' : ''}`}>
+                  {userReputation ? `${userReputation.rank} · ${formatReputationScore(userReputation.score)}` : 'No reveals yet'}
+                </strong>
               </div>
               <div>
                 <p className="signal-label">Last tx</p>
@@ -553,9 +533,10 @@ function App() {
             </div>
 
             <ul className="hero-points">
-              <li>Commit plaintext stays in this browser until you reveal it.</li>
+              <li>All commitment data stored on-chain - access from any device.</li>
+              <li>Reveal a commitment to earn on-chain reputation that persists across arenas.</li>
+              <li>Arena entry fees are collected on-chain and configurable per arena.</li>
               <li>Auto-sign can compress repeat commits into a single session grant.</li>
-              <li>Each commit and reveal uses a live Move execute call on the target chain.</li>
             </ul>
           </aside>
         </section>
@@ -591,7 +572,7 @@ function App() {
                   <p>{arena.summary}</p>
                   <div className="arena-card-meta">
                     <span>{arena.participants} contenders</span>
-                    <span>{arena.entryFee} INIT target stake</span>
+                    <span>{bootstrap.arenaFees[arena.id]?.amount ?? arena.entryFee} {bootstrap.arenaFees[arena.id]?.denom ?? 'INIT'} entry fee</span>
                   </div>
                   <div className="tag-row">
                     {arena.tags.map((tag) => (
@@ -629,8 +610,8 @@ function App() {
                   <strong>{selectedArena.settlementRule}</strong>
                 </div>
                 <div>
-                  <span className="detail-label">Target stake</span>
-                  <strong>{selectedArena.entryFee} INIT</strong>
+                  <span className="detail-label">Entry fee</span>
+                  <strong>{selectedArenaFee ? `${selectedArenaFee.amount} ${selectedArenaFee.denom}` : `${selectedArena.entryFee} INIT`} (on-chain)</strong>
                 </div>
                 <div>
                   <span className="detail-label">Execution rail</span>
@@ -671,8 +652,9 @@ function App() {
               </div>
 
               <p className="composer-note">
-                Veil stores the sealed hash onchain until reveal. The plaintext thesis, evidence,
-                and salt remain in your local browser vault so nobody else can see the call early.
+                Veil stores your thesis, evidence, and a cryptographic hash on-chain. Reveal
+                flips a flag on the module - everything is accessible from any device with your wallet.
+                {selectedArenaFee ? ` Entry fee: ${selectedArenaFee.amount} ${selectedArenaFee.denom} (collected on-chain).` : ''}
               </p>
 
               <div className="mode-switch">
@@ -749,8 +731,8 @@ function App() {
                   <strong>{draftSalt.slice(0, 6)}</strong>
                 </div>
                 <div>
-                  <span className="detail-label">Vault ready</span>
-                  <strong>{revealReadyCount} reveal packages</strong>
+                  <span className="detail-label">Commits in arena</span>
+                  <strong>{selectedCommitments.length}</strong>
                 </div>
               </div>
 
@@ -774,7 +756,7 @@ function App() {
               <section className="vault-section">
                 <div className="section-heading compact">
                   <div>
-                    <p className="eyebrow">Your reveal vault</p>
+                    <p className="eyebrow">Your commitments</p>
                     <h2>Pending and revealed entries</h2>
                   </div>
                 </div>
@@ -782,16 +764,12 @@ function App() {
                 {commitmentCards.length === 0 ? (
                   <div className="empty-state">
                     No commitments for this arena yet. Seal one signal, wait for settlement, then
-                    reveal it from this browser.
+                    reveal it from any device.
                   </div>
                 ) : (
                   <div className="vault-list">
                     {commitmentCards.map((commitment) => {
-                      const revealPackage = vault[commitment.id]
-                      const primaryTxHash =
-                        commitment.status === 'revealed'
-                          ? revealedTxs[commitment.id] || commitment.revealTxHash || commitment.commitTxHash
-                          : revealPackage?.commitTxHash || commitment.commitTxHash
+                      const primaryTxHash = commitment.revealTxHash || commitment.commitTxHash
                       const txUrl = primaryTxHash ? buildExplorerTxUrl(primaryTxHash) : null
 
                       return (
@@ -824,12 +802,9 @@ function App() {
 
                           {commitment.status === 'revealed' ? (
                             <p>{commitment.thesis}</p>
-                          ) : revealPackage ? (
-                            <p>{revealPackage.thesis}</p>
                           ) : (
                             <p className="helper-copy">
-                              Reveal package missing from this browser. Veil cannot reconstruct the
-                              hidden plaintext without the local vault entry.
+                              Thesis is sealed on-chain. Reveal it after settlement to earn reputation.
                             </p>
                           )}
 
@@ -851,7 +826,6 @@ function App() {
                                 className="button secondary"
                                 disabled={
                                   activeAction === 'reveal' ||
-                                  !revealPackage ||
                                   !bootstrap.runtime.moduleAddress
                                 }
                                 onClick={() => handleRevealCommitment(commitment)}
@@ -893,6 +867,12 @@ function App() {
                   <strong className={username ? 'live-copy' : ''}>{currentIdentity}</strong>
                 </div>
                 <div>
+                  <span>On-chain rep</span>
+                  <strong className={userReputation ? 'live-copy' : ''}>
+                    {userReputation ? `${userReputation.rank} · ${userReputation.score} pts` : 'No reveals'}
+                  </strong>
+                </div>
+                <div>
                   <span>Auto-sign session</span>
                   <strong className={autoSignEnabled ? 'live-copy' : ''}>
                     {autoSignEnabled ? 'Armed' : 'Manual'}
@@ -903,9 +883,9 @@ function App() {
                   <strong className="live-copy">{bootstrap.stats.connectedSignalers}</strong>
                 </div>
                 <div>
-                  <span>Local reveal vault</span>
-                  <strong className={Object.keys(vault).length ? 'live-copy' : ''}>
-                    {Object.keys(vault).length} packages
+                  <span>Your commitments</span>
+                  <strong className={selectedCommitments.length ? 'live-copy' : ''}>
+                    {selectedCommitments.length} entries
                   </strong>
                 </div>
               </div>
@@ -970,6 +950,34 @@ function App() {
                     <p>{item.message}</p>
                   </article>
                 ))}
+              </div>
+            </article>
+
+            <article className="panel leaderboard-card">
+              <div className="section-heading compact">
+                <div>
+                  <p className="eyebrow">Reputation board</p>
+                  <h2>On-chain signaler ranks</h2>
+                </div>
+              </div>
+
+              <div className="leaderboard-list">
+                {bootstrap.reputations.slice(0, 10).map((entry, index) => (
+                  <article key={entry.initiaAddress}>
+                    <div>
+                      <span className="leaderboard-rank">#{index + 1}</span>
+                      <strong>{formatPublicHandle(null, entry.initiaAddress)}</strong>
+                      <small>{entry.rank}</small>
+                    </div>
+                    <div>
+                      <span className="leaderboard-score">{entry.score}</span>
+                      <small>{entry.reveals} reveal{entry.reveals !== 1 ? 's' : ''}</small>
+                    </div>
+                  </article>
+                ))}
+                {bootstrap.reputations.length === 0 ? (
+                  <p className="helper-copy">No reputations yet. Reveal a commitment to earn on-chain reputation.</p>
+                ) : null}
               </div>
             </article>
 

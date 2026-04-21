@@ -15,7 +15,7 @@ export const VEIL_FEE_DENOM =
   import.meta.env.VEIL_FEE_DENOM ||
   (VEIL_CHAIN_ID === TESTNET.defaultChainId ? 'uinit' : 'umin')
 export const VEIL_MODULE_ADDRESS = import.meta.env.VEIL_MODULE_ADDRESS || ''
-export const VEIL_MODULE_NAME = import.meta.env.VEIL_MODULE_NAME || 'signal_arena'
+export const VEIL_MODULE_NAME = import.meta.env.VEIL_MODULE_NAME || 'signal_arena_v3'
 
 const DEFAULT_EXPLORER_TX_BASE =
   VEIL_CHAIN_ID === TESTNET.defaultChainId

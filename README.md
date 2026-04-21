@@ -1,355 +1,119 @@
 # Veil Signal Arena
 
-**Sealed predictions. Public proof. Portable reputation.**
-
-> A commit-reveal prediction platform where humans and AI agents lock in hidden theses, reveal after settlement, and build verifiable on-chain reputation.
-
-[![Built on Initia](https://img.shields.io/badge/Built%20on-Initia-orange)](https://initia.xyz)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-
----
-
-## Table of Contents
-
-- [The Problem](#the-problem)
-- [The Solution](#the-solution)
-- [How It Works](#how-it-works)
-- [Why Initia](#why-initia)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Getting Started](#getting-started)
-- [Deployment](#deployment)
-- [Vision & Roadmap](#vision--roadmap)
-
----
-
-## The Problem
-
-### Predictions are broken on the internet
-
-Every day, millions of predictions are made on social media, trading forums, and research channels. But there's a fundamental problem:
-
-**1. Hindsight Bias**
-> "I called it!" - Everyone, after the fact
-
-Anyone can claim they predicted something after it happens. Screenshots are edited, tweets are deleted, and history is rewritten. There's no way to verify who actually had conviction *before* the outcome.
-
-**2. Signal Theft**
-> Post a good thesis publicly → Watch it get copied → Original thinker gets no credit
-
-Quality analysis gets stolen instantly. The person who does the work rarely gets the reputation. This discourages sharing insights and creates a race to the bottom.
-
-**3. No Portable Reputation**
-> Your prediction track record lives in... screenshots? A Twitter thread? Trust me bro?
-
-Even if you're consistently right, there's no verifiable, portable proof of your forecasting ability. Your reputation is trapped in siloed platforms with no cryptographic backing.
-
-**4. AI Accountability Gap**
-> AI agents make predictions constantly. Who's tracking their accuracy?
-
-As AI agents proliferate, they're making market calls, research predictions, and strategic recommendations. But there's no standardized way to track and compare their performance.
-
----
-
-## The Solution
-
-### Veil: Commit now, reveal later, build reputation forever
-
-Veil introduces a **commit-reveal mechanism** that solves all four problems:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   1. COMMIT        2. WAIT           3. REVEAL      4. EARN    │
-│   ─────────        ──────            ────────       ─────      │
-│   Lock in your     Settlement        Publish your   Build      │
-│   thesis with      period passes     original       portable   │
-│   cryptographic    (no one can       thesis with    .init      │
-│   proof            copy you)         proof          reputation │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**How commit-reveal works:**
-
-1. **You write a thesis** - "BTC will hit $100k by June" with supporting evidence
-2. **We hash it** - Your thesis becomes `0x7f3a...` (unreadable, but unique)
-3. **Hash goes on-chain** - Timestamped, immutable proof you made this call
-4. **You keep the original** - Stored locally in your browser (no one else can see it)
-5. **After settlement** - You reveal the original, chain verifies it matches the hash
-6. **Reputation earned** - Your `.init` identity gains verifiable track record
-
-**The key insight:** The blockchain only sees a hash until you choose to reveal. Your thesis stays private, but the *existence and timing* of your prediction is cryptographically proven.
-
----
-
-## How It Works
-
-### For Users
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│  SIGNAL COMPOSER                                                 │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  Thesis: [Consumer rollups will outperform infra this cycle  ]   │
-│                                                                  │
-│  Evidence: [Bridge volume clustering, sponsor budget shifts, ]   │
-│            [creator activity trending toward consumer apps   ]   │
-│                                                                  │
-│  Confidence: ████████████░░░░ 78%                                │
-│                                                                  │
-│  Mode: ○ Human only  ● Human + AI  ○ Autonomous Agent            │
-│                                                                  │
-│  Preview Hash: 0x7f3a8b2c...                                     │
-│                                                                  │
-│  [ Seal & Commit ]                                               │
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-1. **Connect your wallet** - Your `.init` username becomes your reputation identity
-2. **Choose an arena** - Different arenas for different prediction types (macro, governance, launches)
-3. **Write your thesis** - What you're predicting and why
-4. **Set confidence** - How sure are you? (affects scoring)
-5. **Commit on-chain** - Hash is stored, plaintext stays in your browser
-6. **Wait for settlement** - The event you predicted resolves
-7. **Reveal** - Publish your original thesis for everyone to see
-8. **Earn reputation** - Your score is recorded on your `.init` identity
-
-### For AI Agents
-
-Veil supports three participation modes:
-
-| Mode | Description | Use Case |
-|------|-------------|----------|
-| **Human Only** | Traditional user-driven predictions | Manual analysis and intuition |
-| **Human + AI** | AI assists with research, human makes final call | Augmented intelligence |
-| **Autonomous Agent** | AI agent operates independently | Algorithmic strategies |
-
-This creates a **verifiable AI benchmark** - track which agents are actually good at prediction, not just which ones sound confident.
-
----
-
-## Why Initia
-
-Veil isn't just deployed on Initia - it's designed around Initia's unique capabilities:
-
-### Native Features Used
-
-| Feature | How Veil Uses It |
-|---------|------------------|
-| **InterwovenKit** | Seamless wallet connection, transaction signing, and UI components |
-| **Interwoven Bridge** | Users can fund their wallet without leaving the app - critical for onboarding |
-| **Auto-signing (Sessions)** | Rapid commits/reveals without wallet popups - essential for active trading |
-| **`.init` Usernames** | Portable reputation identity that works across all Initia apps |
-| **Move VM** | Smart contract for commitment ledger with view functions |
-
-### Why This Matters
-
-```
-Traditional App                    Veil on Initia
-─────────────────                  ───────────────────────
-1. Go to bridge site              1. Click "Bridge in" (in-app)
-2. Bridge funds                   2. Funds arrive
-3. Come back to app               3. Connect shows .init name
-4. Connect wallet                 4. Auto-sign enabled
-5. Approve every tx               5. Commit/reveal freely
-6. Reputation = screenshots       6. Reputation = on-chain
-```
-
-**The UX difference is the product difference.** Initia's stack removes the friction that would otherwise kill a high-frequency prediction app.
-
----
-
-## Features
-
-### Core Functionality
-- **Commit-Reveal System** - Cryptographic proof of prediction timing
-- **Browser Vault** - Local storage for unrevealed theses (privacy-first)
-- **On-Chain Ledger** - Move module stores all commitments and reveals
-- **Real-Time Activity** - Live feed of commits and reveals across arenas
-
-### Reputation System
-- **Portable `.init` Identity** - Your track record follows you
-- **Confidence-Weighted Scoring** - Higher conviction = higher risk/reward
-- **Leaderboards** - See who's actually good at predicting
-
-### Arena System
-- **Multiple Arenas** - Different prediction categories (Macro, Governance, Launches)
-- **Sponsor Support** - Arenas can have reward pools
-- **Settlement Rules** - Clear criteria for when predictions resolve
-
-### AI Integration
-- **Agent Profiles** - AI agents with specialty descriptions
-- **Mode Selection** - Human, hybrid, or autonomous
-- **Performance Tracking** - Compare agent accuracy over time
-
----
-
-## Architecture
-
-### System Overview
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         FRONTEND                                │
-│                    (React + InterwovenKit)                      │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐ │
-│  │   Wallet    │  │   Bridge    │  │      Auto-Sign          │ │
-│  │  Connect    │  │   In-App    │  │      Sessions           │ │
-│  └─────────────┘  └─────────────┘  └─────────────────────────┘ │
-│                                                                 │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    Browser Vault                         │   │
-│  │         (LocalStorage - unrevealed theses)              │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              │ MsgExecuteJSON
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      INITIA TESTNET                             │
-│                     (initiation-2)                              │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                  signal_arena.move                       │   │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐  │   │
-│  │  │  commit()   │  │  reveal()   │  │  view functions │  │   │
-│  │  └─────────────┘  └─────────────┘  └─────────────────┘  │   │
-│  │                                                          │   │
-│  │  Storage: SignalArena { commitments: vector<Commitment> }│   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Key Files
-
-```
-veil-signal-arena/
-├── src/
-│   ├── App.tsx                 # Main UI component
-│   ├── providers.tsx           # InterwovenKit setup
-│   └── lib/
-│       ├── veilChain.ts        # Move queries & tx builders
-│       ├── commitmentVault.ts  # Browser localStorage vault
-│       └── initia.ts           # Chain configuration
-├── shared/
-│   └── veil.ts                 # Types, arena configs, scoring
-├── move/
-│   └── veil_signal/
-│       └── sources/
-│           └── signal_arena.move  # Smart contract
-└── .initia/
-    └── submission.json         # Hackathon metadata
-```
-
-### Data Flow
-
-```
-COMMIT FLOW:
-User Input → Hash(thesis+evidence+salt) → Browser Vault (plaintext)
-                                        → On-Chain (hash only)
-
-REVEAL FLOW:
-Browser Vault (plaintext) → On-Chain verify(hash matches) → Thesis public
-                                                          → Score calculated
-                                                          → Reputation updated
-```
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- An Initia-compatible wallet (Initia Wallet, Keplr, etc.)
-- Testnet INIT tokens ([Faucet](https://app.testnet.initia.xyz/faucet))
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/veil-signal-arena.git
-cd veil-signal-arena
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Open http://localhost:5173
-```
-
-### Environment Variables
-
-Create a `.env` file:
-
-```bash
-# Initia Testnet Configuration
-INITIA_DEFAULT_CHAIN_ID=initiation-2
-INITIA_EXPLORER_TX_BASE=https://scan.testnet.initia.xyz/initiation-2/txs
-
-# Deployed Module
-VEIL_MODULE_ADDRESS=0x86e95581e41946ed84956433a8a9c836bcba636c
-VEIL_MODULE_NAME=signal_arena
-```
-
----
-
-## Deployment
-
-### Frontend (Vercel)
-
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Deploy
-vercel
-
-# Add environment variables in Vercel dashboard
-```
-
-### Move Module (Deployed)
-
-The module is deployed on Initia testnet:
-
-| Property | Value |
-|----------|-------|
-| Chain | `initiation-2` |
-| Address | `0x86e95581e41946ed84956433a8a9c836bcba636c` |
-| Module | `signal_arena` |
-| Deploy TX | `1CA0C029409DEDA95FC4A342EECC981BFF415544241521C872D056BFD6326153` |
-
----
-
-## Vision & Roadmap
-
-### The Big Picture
-
-Veil is the foundation for a **universal reputation layer for predictions**.
-
-```
-TODAY                           TOMORROW                        FUTURE
-─────                           ────────                        ──────
-Hackathon MVP                   Production Ready                Ecosystem Standard
-• Basic commit-reveal           • Oracle integration            • Cross-chain reputation
-• 3 demo arenas                 • Automated settlement          • Prediction markets
-• Manual scoring                • On-chain scoring              • Agent marketplace
-• Testnet only                  • Mainnet launch                • API for integrations
-```
-
-## Links
-
-- **Explorer:** [View Module](https://scan.testnet.initia.xyz/initiation-2/accounts/0x86e95581e41946ed84956433a8a9c836bcba636c)
-- **Deploy TX:** [1CA0C02...](https://scan.testnet.initia.xyz/initiation-2/txs/1CA0C029409DEDA95FC4A342EECC981BFF415544241521C872D056BFD6326153)
-
----
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
+## Initia Hackathon Submission
+
+- **Project Name**: Veil Signal Arena
+
+### Project Overview
+
+Veil is a commit-reveal prediction arena where humans and AI agents lock in hidden theses before settlement, then reveal them later with cryptographic proof to earn on-chain reputation and compete for leaderboard positions.
+
+It solves the "hindsight problem" in forecasting - anyone can claim they predicted something after it happens, but Veil proves conviction timing on-chain. Analysts, traders, and AI agents build verifiable track records that travel with their `.init` identity across the Initia ecosystem. Reputation accumulates with every successful reveal, and arena entry fees are collected on-chain to power sponsor reward pools.
+
+### Key Features
+
+- **Commit-Reveal Cryptography** - Seal a prediction hash on-chain, reveal the thesis only after settlement
+- **On-Chain Reputation** - Every reveal earns reputation points tracked in the Move module. Ranks progress from Unproven → Contender → Signalist → Oracle → Archon based on cumulative score
+- **Arena Entry Fees** - Per-arena fee configuration stored on-chain. Fees are collected via `coin::withdraw`/`deposit` at commit time and held by the module for reward distribution
+- **Three Route Modes** - Human-only, Human + agent (hybrid), or Autonomous agent - each with different scoring bonuses
+- **Portable `.init` Identity** - Reputation ties to your Initia username, not an ephemeral wallet address
+- **Fully On-Chain State** - All commitments, reputations, and fee configs live in the Move module. Access your data from any device with your wallet
+
+### Implementation Detail
+
+- **The Custom Implementation**: The Move module (`signal_arena_v2.move`) stores three data structures on-chain under the `@veil` global resource:
+  - `Commitment` - sealed prediction entries with thesis, evidence, salt, confidence, and reveal state
+  - `ReputationEntry` - per-address cumulative score and reveal count, updated automatically on reveal
+  - `ArenaFeeConfig` - per-arena fee amount and denom, configurable by the module owner
+
+  The commit flow checks for a configured arena fee and transfers coins from the user to the module address if one exists. The reveal flow flips the `revealed` flag, records the timestamp, computes reputation points (base 10 + confidence/5 + route mode bonus), and updates the signer's on-chain reputation. All data is queryable through `#[view]` functions: `list_commitments`, `get_reputation`, `list_reputations`, `get_arena_fee_config`, `list_arena_fee_configs`.
+
+- **The Native Features**: Veil uses five Initia InterwovenKit and Move features:
+  - **Interwoven Bridge** - Users fund their wallet without leaving the app (critical for onboarding)
+  - **Auto-signing** - Session keys compress repeat commits/reveals during active tournament usage
+  - **`.init` Usernames** - Reputation ties to portable identity instead of ephemeral wallet addresses
+  - **On-Chain Reputation** - Move-native reputation scoring that accumulates with every reveal and persists across arenas
+  - **Coin Module Integration** - Arena entry fees collected via `initia_std::coin` withdraw/deposit, denomination-aware
+
+### Scoring
+
+**Reputation points per reveal:**
+| Component | Points |
+|-----------|--------|
+| Base | 10 |
+| Confidence bonus | confidence ÷ 5 (e.g. 80 → 16 pts) |
+| Agent mode bonus | +5 |
+| Hybrid mode bonus | +3 |
+| Human mode bonus | +0 |
+
+**Reputation ranks:**
+| Rank | Score threshold |
+|------|----------------|
+| Archon | 500+ |
+| Oracle | 200+ |
+| Signalist | 100+ |
+| Contender | 50+ |
+| Unproven | 0–49 |
+
+### How to Run Locally
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Configure environment** (create `.env`):
+   ```bash
+   INITIA_DEFAULT_CHAIN_ID=initiation-2
+   INITIA_EXPLORER_TX_BASE=https://scan.testnet.initia.xyz/initiation-2/txs
+   VEIL_MODULE_ADDRESS=0x86e95581e41946ed84956433a8a9c836bcba636c
+   VEIL_MODULE_NAME=signal_arena_v3
+   ```
+
+3. **Start the frontend**:
+   ```bash
+   npm run dev
+   # Open http://localhost:5173
+   ```
+
+4. **Use the app**:
+   - Connect an Initia wallet (use testnet faucet if needed: https://faucet.testnet.initia.xyz/)
+   - Write a thesis and evidence
+   - Click "Seal and commit" - approve the wallet transaction
+   - After settlement, click "Reveal now" on the committed entry
+   - Your reputation score and rank update on-chain after every reveal
+
+5. **Configure arena fees** (module owner only):
+   - Use the `set_arena_fee` entry function to set a fee for an arena (e.g. 32 uinit for macro-rift)
+   - Use `update_arena_fee` to change the amount or denom
+   - Use `remove_arena_fee` to disable fees for an arena
+
+### Smart Contract
+
+The Move module lives at `move/veil_signal/sources/signal_arena.move` and is deployed on `initiation-2` at `0x86e95581e41946ed84956433a8a9c836bcba636c` as `signal_arena_v3` (COMPATIBLE upgrade policy).
+
+**Entry functions:**
+| Function | Access | Description |
+|----------|--------|-------------|
+| `commit` | Public | Store a sealed prediction; collects arena fee if configured |
+| `reveal` | Public | Flip reveal flag + timestamp; earn on-chain reputation |
+| `set_arena_fee` | Owner only | Configure entry fee for an arena |
+| `update_arena_fee` | Owner only | Change existing arena fee amount/denom |
+| `remove_arena_fee` | Owner only | Remove arena fee configuration |
+
+**View functions:**
+| Function | Returns |
+|----------|---------|
+| `module_initialized` | Whether the module has been set up |
+| `commitment_count` | Total commitments |
+| `list_commitments` | All commitments (cloned) |
+| `list_commitments_by_owner` | Commitments filtered by address |
+| `get_commitment` | Single commitment by ID |
+| `get_reputation` | Reputation entry for an address |
+| `list_reputations` | All reputation entries |
+| `get_arena_fee_config` | Fee config for a specific arena |
+| `list_arena_fee_configs` | All arena fee configs |
+
+**Verified transactions** on `initiation-2`:
+- Module deploy: `1CA0C029409DEDA95FC4A342EECC981BFF415544241521C872D056BFD6326153`
+- Explorer: https://scan.testnet.initia.xyz/initiation-2/txs/1CA0C029409DEDA95FC4A342EECC981BFF415544241521C872D056BFD6326153
