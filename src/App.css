@@ -805,10 +805,15 @@
   gap: 10px;
 }
 
+.leaderboard-list strong {
+  margin-right: 0.5rem;
+}
+
 .leaderboard-rank,
 .leaderboard-score {
   font-weight: 700;
   color: var(--accent-strong);
+  margin-right: 0.5rem;
 }
 
 .activity-meta,

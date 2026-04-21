@@ -56,6 +56,43 @@ type AnchorReceipt = {
   label: string
 }
 
+type TxHashMap = Record<string, { commitTxHash?: string; revealTxHash?: string }>
+
+const VEIL_TX_STORAGE_KEY = 'veil_tx_hashes'
+
+function loadTxHashMap(): TxHashMap {
+  try {
+    const raw = localStorage.getItem(VEIL_TX_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveTxHashEntry(
+  key: string,
+  entry: { commitTxHash?: string; revealTxHash?: string },
+) {
+  const map = loadTxHashMap()
+  map[key] = { ...map[key], ...entry }
+  localStorage.setItem(VEIL_TX_STORAGE_KEY, JSON.stringify(map))
+}
+
+function mergeTxHashes(
+  commitments: CommitmentRecord[],
+  txMap: TxHashMap,
+): CommitmentRecord[] {
+  return commitments.map((c) => {
+    const entry = txMap[c.commitmentHash] || txMap[c.id]
+    if (!entry) return c
+    return {
+      ...c,
+      commitTxHash: c.commitTxHash || entry.commitTxHash,
+      revealTxHash: c.revealTxHash || entry.revealTxHash,
+    }
+  })
+}
+
 const DEFAULT_DRAFT: DraftState = {
   thesis: '',
   evidence: '',
@@ -153,9 +190,12 @@ function App() {
     : bootstrap.runtime.moduleAddress
       ? 'module not initialized'
       : 'module address missing'
-  const commitmentCards = [...selectedCommitments].sort(
-    (left, right) =>
-      new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+  const commitmentCards = mergeTxHashes(
+    [...selectedCommitments].sort(
+      (left, right) =>
+        new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+    ),
+    loadTxHashMap(),
   )
   const userReputation = bootstrap.reputations.find((rep) =>
     initiaAddress && sameInitiaAddress(rep.initiaAddress, initiaAddress)
@@ -289,6 +329,7 @@ function App() {
         txHash: commitReceipt.transactionHash,
         label: `Commit anchored for ${selectedArena.title}`,
       })
+      saveTxHashEntry(commitmentHash, { commitTxHash: commitReceipt.transactionHash })
       setNotice({
         tone: 'success',
         text: 'Commit executed onchain. Thesis and evidence are stored on-chain. Reveal when settlement arrives.',
@@ -328,6 +369,8 @@ function App() {
         txHash: revealReceipt.transactionHash,
         label: `Reveal anchored for ${selectedArena.title}`,
       })
+      saveTxHashEntry(commitment.id, { revealTxHash: revealReceipt.transactionHash })
+      saveTxHashEntry(commitment.commitmentHash, { revealTxHash: revealReceipt.transactionHash })
       setNotice({
         tone: 'success',
         text: 'Reveal executed onchain. The leaderboard and activity rail have been refreshed from live module state.',
