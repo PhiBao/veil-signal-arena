@@ -1,0 +1,15 @@
+[package]
+name = "veil_signal"
+version = "0.0.1"
+
+[dependencies]
+InitiaStdlib = { git = "https://github.com/initia-labs/move-natives.git", subdir = "initia_stdlib", rev = "main" }
+
+[addresses]
+initia_std = "0x1"
+std = "0x1"
+# Your address: init1sm54tq0yr9rwmpy4vse632wgx67t5cmvuum5d8
+veil = "0x86e95581e41946ed84956433a8a9c836bcba636c"
+
+[dev-addresses]
+veil = "0xcafe"

@@ -1,0 +1,16 @@
+{
+  "project_name": "Veil Signal Arena",
+  "repo_url": "TODO: Add your GitHub repo URL before submission",
+  "commit_sha": "TODO: Add commit SHA after pushing to GitHub",
+  "rollup_chain_id": "initiation-2",
+  "deployed_address": "0x86e95581e41946ed84956433a8a9c836bcba636c",
+  "vm": "move",
+  "native_features": ["interwoven-bridge", "auto-signing", "initia-usernames"],
+  "core_logic_path": "move/veil_signal/sources/signal_arena.move",
+  "native_feature_frontend_path": "src/App.tsx",
+  "demo_video_url": "TODO: Add demo video URL before submission",
+  "track": "AI",
+  "verified_txns": {
+    "module_publish": "1CA0C029409DEDA95FC4A342EECC981BFF415544241521C872D056BFD6326153"
+  }
+}

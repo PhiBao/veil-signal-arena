@@ -1,0 +1,106 @@
+:root {
+  --bg: #f2e7d3;
+  --panel: rgba(255, 250, 242, 0.82);
+  --ink: #17110c;
+  --muted: #6b6154;
+  --border: rgba(52, 35, 18, 0.1);
+  --accent: #ff8c43;
+  --accent-strong: #dd5410;
+  --accent-soft: #ffbf47;
+  --support: #0a8d79;
+  --shadow: 0 24px 72px rgba(68, 41, 17, 0.12);
+  --sans: 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --heading: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+  --mono: 'SFMono-Regular', 'Cascadia Code', 'Fira Code', monospace;
+  font: 17px/1.55 var(--sans);
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.78), transparent 34%),
+    radial-gradient(circle at 80% 20%, rgba(255, 192, 71, 0.22), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(10, 141, 121, 0.1), transparent 32%),
+    linear-gradient(180deg, #f6efe2 0%, #efe2cf 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    linear-gradient(rgba(52, 35, 18, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 35, 18, 0.04) 1px, transparent 1px),
+    var(--bg);
+  background-size: 30px 30px, 30px 30px, auto;
+}
+
+#root button,
+#root input,
+#root textarea {
+  font: inherit;
+}
+
+#root button {
+  appearance: none;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+#root h1,
+#root h2,
+#root h3 {
+  color: var(--ink);
+}
+
+#root h1,
+#root h2,
+#root h3 {
+  margin: 0;
+  font-family: var(--heading);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+
+#root .signal-pane h3 {
+  color: inherit;
+}
+
+#root p,
+#root ul,
+#root li {
+  margin: 0;
+}
+
+#root code {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 0.5rem 0.8rem;
+  font-family: var(--mono);
+  font-size: 0.84rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+}
+
+#root a {
+  color: inherit;
+}
+
+@media (max-width: 760px) {
+  :root {
+    font-size: 16px;
+  }
+}
