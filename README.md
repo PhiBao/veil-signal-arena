@@ -66,7 +66,7 @@ It solves the "hindsight problem" in forecasting - anyone can claim they predict
    ```bash
    INITIA_DEFAULT_CHAIN_ID=initiation-2
    INITIA_EXPLORER_TX_BASE=https://scan.testnet.initia.xyz/initiation-2/txs
-   VEIL_MODULE_ADDRESS=0x86e95581e41946ed84956433a8a9c836bcba636c
+   VEIL_MODULE_ADDRESS=0x4Ba1e9e275EF61B56C99532D0066506436201D73
    VEIL_MODULE_NAME=signal_arena_v3
    ```
 
@@ -90,7 +90,7 @@ It solves the "hindsight problem" in forecasting - anyone can claim they predict
 
 ### Smart Contract
 
-The Move module lives at `move/veil_signal/sources/signal_arena.move` and is deployed on `initiation-2` at `0x86e95581e41946ed84956433a8a9c836bcba636c` as `signal_arena_v3` (COMPATIBLE upgrade policy).
+The Move module lives at `move/veil_signal/sources/signal_arena.move` and is deployed on `initiation-2` at `0x4Ba1e9e275EF61B56C99532D0066506436201D73` as `signal_arena_v3` (COMPATIBLE upgrade policy).
 
 **Entry functions:**
 | Function | Access | Description |
@@ -115,5 +115,5 @@ The Move module lives at `move/veil_signal/sources/signal_arena.move` and is dep
 | `list_arena_fee_configs` | All arena fee configs |
 
 **Verified transactions** on `initiation-2`:
-- Module deploy: `1CA0C029409DEDA95FC4A342EECC981BFF415544241521C872D056BFD6326153`
-- Explorer: https://scan.testnet.initia.xyz/initiation-2/txs/1CA0C029409DEDA95FC4A342EECC981BFF415544241521C872D056BFD6326153
+- Module deploy v3: `37A126BB3AF89A524AD0BE8EF65D4CC903311B868C6D68A09023B109A14F5289`
+- Explorer: https://scan.testnet.initia.xyz/initiation-2/txs/37A126BB3AF89A524AD0BE8EF65D4CC903311B868C6D68A09023B109A14F5289

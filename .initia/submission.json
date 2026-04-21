@@ -3,7 +3,7 @@
   "repo_url": "https://github.com/PhiBao/veil-signal-arena",
   "commit_sha": "88d09f8ef890dbec3b0bb999d5a6f89ea41daebf",
   "rollup_chain_id": "initiation-2",
-  "deployed_address": "0x86e95581e41946ed84956433a8a9c836bcba636c",
+  "deployed_address": "0x4Ba1e9e275EF61B56C99532D0066506436201D73",
   "vm": "move",
   "native_features": ["interwoven-bridge", "auto-signing", "initia-usernames", "on-chain-reputation", "arena-entry-fees"],
   "core_logic_path": "move/veil_signal/sources/signal_arena.move",
@@ -14,9 +14,9 @@
   "verified_txns": {
     "module_publish_v1": "1CA0C029409DEDA95FC4A342EECC981BFF415544241521C872D056BFD6326153",
     "module_publish_v2": "99831F0F015DD72744F999799BEB58D738EC4297BE56861FFD2857E023AB8DB0",
-    "module_publish_v3": "D133D6CA35FEFEF85CE99C60783737B2EE059297117A5AAF341E83DF9CF7D378",
-    "set_arena_fee_macro_rift": "0E0A2CEE333C363CD7F9C4179C2095E6A0DBD269E2CC866375DD5F15529A9AE8",
-    "set_arena_fee_governor_shadow": "A6D4499FBEE507E270583280C5545A70A2CADBDBE7C202DB8136242FC5B915C7",
-    "set_arena_fee_launch_echo": "99E751C05C297E45C35E3E86BF01D68CE008D75D637D6FADF4CEAE36A109783A"
+    "module_publish_v3": "37A126BB3AF89A524AD0BE8EF65D4CC903311B868C6D68A09023B109A14F5289",
+    "set_arena_fee_macro_rift": "5AB75C4AF472217C8C10667A34AC8AEC8CC13BED71B1D6D2B323F7AF91CA3CD7",
+    "set_arena_fee_governor_shadow": "C9044E690963D277E939E65132B84EC90A105FAC0B2E053C668DA204CB75A5DD",
+    "set_arena_fee_launch_echo": "67A0FAC51B4B7737D696E030C8E39D7B2DA61DBF258C1AF2BA6DB1AE6A95A8BB"
   }
 }
