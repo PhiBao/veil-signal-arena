@@ -9,7 +9,7 @@
   "core_logic_path": "move/veil_signal/sources/signal_arena.move",
   "module_name": "signal_arena_v3",
   "native_feature_frontend_path": "src/App.tsx",
-  "demo_video_url": "TODO: Add demo video URL before submission",
+  "demo_video_url": "https://youtu.be/8ZTh3G44tMA",
   "track": "AI",
   "verified_txns": {
     "module_publish_v1": "1CA0C029409DEDA95FC4A342EECC981BFF415544241521C872D056BFD6326153",
